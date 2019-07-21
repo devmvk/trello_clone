@@ -80,6 +80,7 @@ class TaskCardContainer extends StatefulWidget {
 
   /// Creates a reorderable list.
   TaskCardContainer({
+    this.id,
     this.header,
     @required this.children,
     @required this.onReorder,
@@ -93,6 +94,8 @@ class TaskCardContainer extends StatefulWidget {
          children.every((Widget w) => w.key != null),
          'All children of this widget must have a key.',
        );
+
+  final int id;
 
   /// A non-reorderable header widget to show before the list.
   ///

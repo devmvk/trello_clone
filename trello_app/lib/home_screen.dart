@@ -57,37 +57,41 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
+    double width = MediaQuery.of(context).size.width;
     return Scaffold(
       appBar: AppBar(
         title: Text("Trello Clone"),
       ),
       body: Container(
-        child: TaskCardContainer(
-                header: Text("Done"),
-                children: doneTasks.map<Widget>(buildTaskCard).toList(),
-                onReorder: _onReorderDone
+        child: ListView(
+          scrollDirection: Axis.horizontal,
+          children: <Widget>[
+              SizedBox(
+                width: width*0.75,
+                child: TaskCardContainer(
+                  header: Text("To Do"),
+                  children: todoTasks.map<Widget>(buildTaskCard).toList(),
+                  onReorder: _onReorderToDo
+                ),
               ),
-        // child: SingleChildScrollView(
-        //   child: Row(
-        //     children: <Widget>[
-        //       TaskCardContainer(
-        //         header: Text("To Do"),
-        //         children: todoTasks.map<Widget>(buildTaskCard).toList(),
-        //         onReorder: _onReorderToDo
-        //       ),
-        //       TaskCardContainer(
-        //         header: Text("In Progress"),
-        //         children: inProgressTasks.map<Widget>(buildTaskCard).toList(),
-        //         onReorder: _onReorderInProgress
-        //       ),
-        //       TaskCardContainer(
-        //         header: Text("Done"),
-        //         children: doneTasks.map<Widget>(buildTaskCard).toList(),
-        //         onReorder: _onReorderDone
-        //       ),
-        //     ],
-        //   ),
-        // )
+              SizedBox(
+                width: width*0.75,
+                child: TaskCardContainer(
+                  header: Text("In Progress"),
+                  children: inProgressTasks.map<Widget>(buildTaskCard).toList(),
+                  onReorder: _onReorderInProgress
+                ),
+              ),
+              SizedBox(
+                width: width*0.75,
+                child: TaskCardContainer(
+                  header: Text("Done"),
+                  children: doneTasks.map<Widget>(buildTaskCard).toList(),
+                  onReorder: _onReorderDone
+                ),
+              ),
+            ],
+        )
       ),
     );
   }
