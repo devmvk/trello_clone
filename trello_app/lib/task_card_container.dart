@@ -87,13 +87,15 @@ class TaskCardContainer extends StatefulWidget {
     this.scrollDirection = Axis.vertical,
     this.padding,
     this.reverse = false,
+    Key key
   }) : assert(scrollDirection != null),
        assert(onReorder != null),
        assert(children != null),
        assert(
          children.every((Widget w) => w.key != null),
          'All children of this widget must have a key.',
-       );
+       ),
+       super(key:key);
 
   final int id;
 
@@ -281,11 +283,12 @@ class _ReorderableListContentState extends State<_ReorderableListContent> with T
     _entranceController = AnimationController(vsync: this, duration: _reorderAnimationDuration);
     _ghostController = AnimationController(vsync: this, duration: _reorderAnimationDuration);
     _entranceController.addStatusListener(_onEntranceStatusChanged);
+    _scrollController = ScrollController();
+    
   }
 
   @override
   void didChangeDependencies() {
-    _scrollController = PrimaryScrollController.of(context) ?? ScrollController();
     super.didChangeDependencies();
   }
 
