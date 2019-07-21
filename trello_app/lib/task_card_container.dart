@@ -84,12 +84,10 @@ class TaskCardContainer extends StatefulWidget {
     this.header,
     @required this.children,
     @required this.onReorder,
-    this.scrollDirection = Axis.vertical,
     this.padding,
     this.reverse = false,
     Key key
-  }) : assert(scrollDirection != null),
-       assert(onReorder != null),
+  }) : assert(onReorder != null),
        assert(children != null),
        assert(
          children.every((Widget w) => w.key != null),
@@ -106,11 +104,6 @@ class TaskCardContainer extends StatefulWidget {
 
   /// The widgets to display.
   final List<Widget> children;
-
-  /// The [Axis] along which the list scrolls.
-  ///
-  /// List [children] can only drag along this [Axis].
-  final Axis scrollDirection;
 
   /// The amount of space by which to inset the [children].
   final EdgeInsets padding;
@@ -165,7 +158,6 @@ class _TaskCardContainerState extends State<TaskCardContainer> {
         return _ReorderableListContent(
           header: widget.header,
           children: widget.children,
-          scrollDirection: widget.scrollDirection,
           onReorder: widget.onReorder,
           padding: widget.padding,
           reverse: widget.reverse,
@@ -190,7 +182,6 @@ class _ReorderableListContent extends StatefulWidget {
   const _ReorderableListContent({
     @required this.header,
     @required this.children,
-    @required this.scrollDirection,
     @required this.padding,
     @required this.onReorder,
     @required this.reverse,
@@ -198,7 +189,6 @@ class _ReorderableListContent extends StatefulWidget {
 
   final Widget header;
   final List<Widget> children;
-  final Axis scrollDirection;
   final EdgeInsets padding;
   final ReorderCallback onReorder;
   final bool reverse;
@@ -264,17 +254,7 @@ class _ReorderableListContentState extends State<_ReorderableListContent> with T
     if (_draggingFeedbackSize == null) {
       return _defaultDropAreaExtent;
     }
-    double dropAreaWithoutMargin;
-    switch (widget.scrollDirection) {
-      case Axis.horizontal:
-        dropAreaWithoutMargin = _draggingFeedbackSize.width;
-        break;
-      case Axis.vertical:
-      default:
-        dropAreaWithoutMargin = _draggingFeedbackSize.height;
-        break;
-    }
-    return dropAreaWithoutMargin + _dropAreaMargin;
+    return _draggingFeedbackSize.height + _dropAreaMargin;
   }
 
   @override
@@ -361,13 +341,7 @@ class _ReorderableListContentState extends State<_ReorderableListContent> with T
   // Wraps children in Row or Column, so that the children flow in
   // the widget's scrollDirection.
   Widget _buildContainerForScrollDirection({ List<Widget> children }) {
-    switch (widget.scrollDirection) {
-      case Axis.horizontal:
-        return Row(children: children);
-      case Axis.vertical:
-      default:
-        return Column(children: children);
-    }
+    return Column(children: children);
   }
 
   // Wraps one of the widget's children in a DragTarget and Draggable.
@@ -428,22 +402,18 @@ class _ReorderableListContentState extends State<_ReorderableListContent> with T
       if (index > 0) {
         semanticsActions[CustomSemanticsAction(label: localizations.reorderItemToStart)] = moveToStart;
         String reorderItemBefore = localizations.reorderItemUp;
-        if (widget.scrollDirection == Axis.horizontal) {
-          reorderItemBefore = Directionality.of(context) == TextDirection.ltr
-              ? localizations.reorderItemLeft
-              : localizations.reorderItemRight;
-        }
+        // reorderItemBefore = Directionality.of(context) == TextDirection.ltr
+        //       ? localizations.reorderItemLeft
+        //       : localizations.reorderItemRight;
         semanticsActions[CustomSemanticsAction(label: reorderItemBefore)] = moveBefore;
       }
 
       // If the item can move to after its current position in the list.
       if (index < widget.children.length - 1) {
         String reorderItemAfter = localizations.reorderItemDown;
-        if (widget.scrollDirection == Axis.horizontal) {
-          reorderItemAfter = Directionality.of(context) == TextDirection.ltr
+        reorderItemAfter = Directionality.of(context) == TextDirection.ltr
               ? localizations.reorderItemRight
               : localizations.reorderItemLeft;
-        }
         semanticsActions[CustomSemanticsAction(label: reorderItemAfter)] = moveAfter;
         semanticsActions[CustomSemanticsAction(label: localizations.reorderItemToEnd)] = moveToEnd;
       }
@@ -472,7 +442,6 @@ class _ReorderableListContentState extends State<_ReorderableListContent> with T
       // constrain the size of the feedback dragging widget.
       Widget child = LongPressDraggable<Key>(
         maxSimultaneousDrags: 1,
-        axis: widget.scrollDirection,
         data: toWrap.key,
         ignoringFeedbackSemantics: false,
         feedback: Container(
@@ -506,16 +475,7 @@ class _ReorderableListContentState extends State<_ReorderableListContent> with T
       }
 
       // Determine the size of the drop area to show under the dragging widget.
-      Widget spacing;
-      switch (widget.scrollDirection) {
-        case Axis.horizontal:
-          spacing = SizedBox(width: _dropAreaExtent);
-          break;
-        case Axis.vertical:
-        default:
-          spacing = SizedBox(height: _dropAreaExtent);
-          break;
-      }
+      Widget spacing = SizedBox(height: _dropAreaExtent);
 
       // We open up a space under where the dragging widget currently is to
       // show it can be dropped.
@@ -523,7 +483,7 @@ class _ReorderableListContentState extends State<_ReorderableListContent> with T
         return _buildContainerForScrollDirection(children: <Widget>[
           SizeTransition(
             sizeFactor: _entranceController,
-            axis: widget.scrollDirection,
+            axis: Axis.vertical,
             child: spacing,
           ),
           child,
@@ -535,7 +495,7 @@ class _ReorderableListContentState extends State<_ReorderableListContent> with T
         return _buildContainerForScrollDirection(children: <Widget>[
           SizeTransition(
             sizeFactor: _ghostController,
-            axis: widget.scrollDirection,
+            axis: Axis.vertical,
             child: spacing,
           ),
           child,
@@ -576,24 +536,12 @@ class _ReorderableListContentState extends State<_ReorderableListContent> with T
         wrappedChildren.add(_wrap(widget.children[i], i, constraints));
       }
       const Key endWidgetKey = Key('DraggableList - End Widget');
-      Widget finalDropArea;
-      switch (widget.scrollDirection) {
-        case Axis.horizontal:
-          finalDropArea = SizedBox(
-            key: endWidgetKey,
-            width: _defaultDropAreaExtent,
-            height: constraints.maxHeight,
-          );
-          break;
-        case Axis.vertical:
-        default:
-          finalDropArea = SizedBox(
+      Widget finalDropArea = SizedBox(
             key: endWidgetKey,
             height: _defaultDropAreaExtent,
             width: constraints.maxWidth,
           );
-          break;
-      }
+      
       if (widget.reverse) {
         wrappedChildren.insert(0, _wrap(
           finalDropArea,
@@ -608,7 +556,7 @@ class _ReorderableListContentState extends State<_ReorderableListContent> with T
         );
       }
       return SingleChildScrollView(
-        scrollDirection: widget.scrollDirection,
+        scrollDirection: Axis.vertical,
         child: _buildContainerForScrollDirection(children: wrappedChildren),
         padding: widget.padding,
         controller: _scrollController,
