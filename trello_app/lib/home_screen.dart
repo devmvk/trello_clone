@@ -69,9 +69,6 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     double width = MediaQuery.of(context).size.width;
     return Scaffold(
-      appBar: AppBar(
-        title: Text("Trello Clone"),
-      ),
       body: SafeArea(
         child: Container(
           child: ListView(
@@ -80,7 +77,6 @@ class _HomeScreenState extends State<HomeScreen> {
                 SizedBox(
                   width: width*0.75,
                   child: TaskCardContainer(
-                    key: Key("todo"),
                     header: Text("To Do"),
                     children: todoTasks.map<Widget>(buildTaskCard).toList(),
                     onReorder: _onReorderToDo
@@ -89,7 +85,6 @@ class _HomeScreenState extends State<HomeScreen> {
                 SizedBox(
                   width: width*0.75,
                   child: TaskCardContainer(
-                    key: Key("inprogress"),
                     header: Text("In Progress"),
                     children: inProgressTasks.map<Widget>(buildTaskCard).toList(),
                     onReorder: _onReorderInProgress
@@ -98,14 +93,16 @@ class _HomeScreenState extends State<HomeScreen> {
                 SizedBox(
                   width: width*0.75,
                   child: TaskCardContainer(
-                    key: Key("done"),
                     header: Text("Done"),
                     children: doneTasks.map<Widget>(buildTaskCard).toList(),
                     onReorder: _onReorderDone
                   ),
                 ),
               ],
-          )
+          ),
+         decoration: BoxDecoration(
+           image: DecorationImage(image: NetworkImage("https://www.gstatic.com/webp/gallery/4.webp"), fit: BoxFit.cover)
+         ),
         ),
       )
     );
