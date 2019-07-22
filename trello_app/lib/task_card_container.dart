@@ -83,7 +83,7 @@ class _TaskCardContainerState extends State<TaskCardContainer> {
 
   @override
   Widget build(BuildContext context) {
-    return _ReorderableListContent(
+    return _TaskContainerContent(
           header: widget.header,
           children: widget.children,
           onReorder: widget.onReorder,
@@ -95,8 +95,8 @@ class _TaskCardContainerState extends State<TaskCardContainer> {
 
 // This widget is responsible for the inside of the Overlay in the
 // ReorderableListView.
-class _ReorderableListContent extends StatefulWidget {
-  const _ReorderableListContent({
+class _TaskContainerContent extends StatefulWidget {
+  const _TaskContainerContent({
     @required this.header,
     @required this.children,
     @required this.padding,
@@ -111,10 +111,10 @@ class _ReorderableListContent extends StatefulWidget {
   final bool reverse;
 
   @override
-  _ReorderableListContentState createState() => _ReorderableListContentState();
+  _TaskContainerContentState createState() => _TaskContainerContentState();
 }
 
-class _ReorderableListContentState extends State<_ReorderableListContent> with TickerProviderStateMixin<_ReorderableListContent> {
+class _TaskContainerContentState extends State<_TaskContainerContent> with TickerProviderStateMixin<_TaskContainerContent> {
 
   // The extent along the [widget.scrollDirection] axis to allow a child to
   // drop into when the user reorders list children.
@@ -446,9 +446,6 @@ class _ReorderableListContentState extends State<_ReorderableListContent> with T
     // We use the layout builder to constrain the cross-axis size of dragging child widgets.
     return LayoutBuilder(builder: (BuildContext context, BoxConstraints constraints) {
       final List<Widget> wrappedChildren = <Widget>[];
-      if (widget.header != null) {
-        wrappedChildren.add(widget.header);
-      }
       for (int i = 0; i < widget.children.length; i += 1) {
         wrappedChildren.add(_wrap(widget.children[i], i, constraints));
       }
@@ -472,12 +469,19 @@ class _ReorderableListContentState extends State<_ReorderableListContent> with T
           constraints),
         );
       }
-      return SingleChildScrollView(
-        scrollDirection: Axis.vertical,
-        child: _buildContainerForScrollDirection(children: wrappedChildren),
-        padding: widget.padding,
-        controller: _scrollController,
-        reverse: widget.reverse,
+      return Column(
+        children: <Widget>[
+          widget.header,
+          Expanded(
+            child: SingleChildScrollView(
+              scrollDirection: Axis.vertical,
+              child: _buildContainerForScrollDirection(children: wrappedChildren),
+              padding: widget.padding,
+              controller: _scrollController,
+              reverse: widget.reverse,
+            ),
+          )
+        ],
       );
     });
   }
