@@ -1,33 +1,3 @@
-// import 'package:flutter/material.dart';
-// import 'package:trello_clone/task_card.dart';
-
-// class TaskCardContainer extends StatefulWidget {
-//   @override
-//   _TaskCardContainerState createState() => _TaskCardContainerState();
-// }
-
-// class _TaskCardContainerState extends State<TaskCardContainer> {
-  
-//   @override
-//   Widget build(BuildContext context) {
-//     double width = MediaQuery.of(context).size.width;
-//     return Container(
-//       width: width*0.75,
-//       margin: EdgeInsets.all(10.0),
-//       color: Colors.tealAccent,
-//       child: Container(
-//         child: ListView(
-//           children: List.generate(10, (index)=>TaskCard(index))
-//         ),
-//       ),
-//     );
-//   }
-// }
-
-// Copyright 2018 The Chromium Authors. All rights reserved.
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file.
-
 import 'dart:math';
 
 import 'package:flutter/widgets.dart';
@@ -37,45 +7,8 @@ import 'package:flutter/src/material/debug.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/src/material/material_localizations.dart';
 
-// Examples can assume:
-// class MyDataObject { }
-
-/// The callback used by [ReorderableListView] to move an item to a new
-/// position in a list.
-///
-/// Implementations should remove the corresponding list item at [oldIndex]
-/// and reinsert it at [newIndex].
-///
-/// If [oldIndex] is before [newIndex], removing the item at [oldIndex] from the
-/// list will reduce the list's length by one. Implementations used by
-/// [ReorderableListView] will need to account for this when inserting before
-/// [newIndex].
-///
-/// {@tool sample}
-///
-/// ```dart
-/// final List<MyDataObject> backingList = <MyDataObject>[/* ... */];
-///
-/// void handleReorder(int oldIndex, int newIndex) {
-///   if (oldIndex < newIndex) {
-///     // removing the item at oldIndex will shorten the list by 1.
-///     newIndex -= 1;
-///   }
-///   final MyDataObject element = backingList.removeAt(oldIndex);
-///   backingList.insert(newIndex, element);
-/// }
-/// ```
-/// {@end-tool}
 typedef ReorderCallback = void Function(int oldIndex, int newIndex);
 
-/// A list whose items the user can interactively reorder by dragging.
-///
-/// This class is appropriate for views with a small number of
-/// children because constructing the [List] requires doing work for every
-/// child that could possibly be displayed in the list view instead of just
-/// those children that are actually visible.
-///
-/// All [children] must have a key.
 class TaskCardContainer extends StatefulWidget {
 
   /// Creates a reorderable list.
@@ -143,36 +76,20 @@ class TaskCardContainer extends StatefulWidget {
 // That overlay entry then builds a _ReorderableListContent which may
 // insert Draggables into the Overlay above itself.
 class _TaskCardContainerState extends State<TaskCardContainer> {
-  // We use an inner overlay so that the dragging list item doesn't draw outside of the list itself.
-  final GlobalKey _overlayKey = GlobalKey(debugLabel: '$ReorderableListView overlay key');
-
-  // This entry contains the scrolling list itself.
-  OverlayEntry _listOverlayEntry;
-
   @override
   void initState() {
     super.initState();
-    _listOverlayEntry = OverlayEntry(
-      opaque: true,
-      builder: (BuildContext context) {
-        return _ReorderableListContent(
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return _ReorderableListContent(
           header: widget.header,
           children: widget.children,
           onReorder: widget.onReorder,
           padding: widget.padding,
           reverse: widget.reverse,
-        );
-      },
-    );
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Overlay(
-      key: _overlayKey,
-      initialEntries: <OverlayEntry>[
-        _listOverlayEntry,
-    ]);
+      );
   }
 }
 

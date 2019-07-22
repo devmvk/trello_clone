@@ -43,6 +43,16 @@ class _HomeScreenState extends State<HomeScreen> {
     });
   }
 
+  void _onReorder(int oldIndex, int newIndex, List<TaskModel> tasks){
+    setState(() {
+      if (newIndex > oldIndex) {
+        newIndex -= 1;
+      }
+      final TaskModel item = tasks.removeAt(oldIndex);
+      tasks.insert(newIndex, item);
+    });
+  }
+
   Widget buildTaskCard(TaskModel task){
     return Container(
         margin: EdgeInsets.symmetric(vertical: 4.0, horizontal: 8.0),
