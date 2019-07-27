@@ -6,8 +6,9 @@ import 'package:flutter/rendering.dart';
 import 'package:flutter/src/material/debug.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/src/material/material_localizations.dart';
+import 'package:trello_app/constants.dart';
 
-typedef ReorderCallback = void Function(int oldIndex, int newIndex);
+typedef CardReorderCallback = void Function(int oldIndex, int newIndex);
 
 class TaskCardContainer extends StatefulWidget {
 
@@ -45,7 +46,7 @@ class TaskCardContainer extends StatefulWidget {
   ///
   /// This [ReorderableListView] calls [onReorder] after a list child is dropped
   /// into a new position.
-  final ReorderCallback onReorder;
+  final CardReorderCallback onReorder;
 
   @override
   _TaskCardContainerState createState() => _TaskCardContainerState();
@@ -90,7 +91,7 @@ class _TaskContainerContent extends StatefulWidget {
   final Widget header;
   final List<Widget> children;
   final EdgeInsets padding;
-  final ReorderCallback onReorder;
+  final CardReorderCallback onReorder;
   
   @override
   _TaskContainerContentState createState() => _TaskContainerContentState();
@@ -200,6 +201,16 @@ class _TaskContainerContentState extends State<_TaskContainerContent> with Ticke
     }
   }
 
+  void viewPortOnScreen(BuildContext contex){
+    final RenderObject contextObject = context.findRenderObject();
+    final RenderAbstractViewport viewport = RenderAbstractViewport.of(contextObject);
+    viewport.showOnScreen(
+      descendant: context.findRenderObject(),
+      duration: Duration(seconds: 2),
+      curve: Curves.easeInOut
+    );
+  }
+
   // Scrolls to a target context if that context is not on the screen.
   void _scrollTo(BuildContext context) {
     if (_scrolling)
@@ -212,6 +223,7 @@ class _TaskContainerContentState extends State<_TaskContainerContent> with Ticke
     // screen, then it is already on-screen.
     final double margin = _dropAreaExtent;
     final double scrollOffset = _scrollController.offset;
+    final double horizontalScrollOffSet = taskCardContainerController.offset;
     final double topOffset = max(
       _scrollController.position.minScrollExtent,
       viewport.getOffsetToReveal(contextObject, 0.0).offset - margin,
@@ -220,10 +232,23 @@ class _TaskContainerContentState extends State<_TaskContainerContent> with Ticke
       _scrollController.position.maxScrollExtent,
       viewport.getOffsetToReveal(contextObject, 1.0).offset + margin,
     );
-    final bool onScreen = scrollOffset <= topOffset && scrollOffset >= bottomOffset;
+    final double leftOffset = max(
+      taskCardContainerController.position.maxScrollExtent,
+      viewport.getOffsetToReveal(contextObject, 0.0).offset - margin,
+    );
+    final double rightOffset = min(
+      taskCardContainerController.position.maxScrollExtent,
+      viewport.getOffsetToReveal(contextObject, 1.0).offset + margin,
+    );
 
+    print("scrollOffSet $scrollOffset topOffset $topOffset bottomOffset $bottomOffset");
+    print("horizontalScrollOffSet $horizontalScrollOffSet leftOffset $leftOffset rightOffset $rightOffset");
+    
+    final bool verticalOnScreen = scrollOffset <= topOffset && scrollOffset >= bottomOffset;
+    final bool horizontalOnScreen = horizontalScrollOffSet <= leftOffset && horizontalScrollOffSet >= rightOffset;
+  
     // If the context is off screen, then we request a scroll to make it visible.
-    if (!onScreen) {
+    if (!verticalOnScreen) {
       _scrolling = true;
       _scrollController.position.animateTo(
         scrollOffset < bottomOffset ? bottomOffset : topOffset,
@@ -235,6 +260,18 @@ class _TaskContainerContentState extends State<_TaskContainerContent> with Ticke
         });
       });
     }
+    // else if(!horizontalOnScreen){
+    //   _scrolling = true;
+    //   taskCardContainerController.position.animateTo(
+    //     horizontalScrollOffSet < rightOffset ? rightOffset : leftOffset,
+    //     duration: _scrollAnimationDuration,
+    //     curve: Curves.easeInOut,
+    //   ).then((void value) {
+    //     setState(() {
+    //       _scrolling = false;
+    //     });
+    //   });
+    // }
   }
 
   // Wraps children in Row or Column, so that the children flow in
@@ -251,7 +288,7 @@ class _TaskContainerContentState extends State<_TaskContainerContent> with Ticke
     // We pass the toWrapWithGlobalKey into the Draggable so that when a list
     // item gets dragged, the accessibility framework can preserve the selected
     // state of the dragging item.
-
+    
     // Starts dragging toWrap.
     void onDragStarted() {
       setState(() {
@@ -336,7 +373,6 @@ class _TaskContainerContentState extends State<_TaskContainerContent> with Ticke
 
     Widget buildDragTarget(BuildContext context, List<Key> acceptedCandidates, List<dynamic> rejectedCandidates) {
       final Widget toWrapWithSemantics = wrapWithSemantics();
-
       // We build the draggable inside of a layout builder so that we can
       // constrain the size of the feedback dragging widget.
       Widget child = LongPressDraggable<Key>(
@@ -412,14 +448,18 @@ class _TaskContainerContentState extends State<_TaskContainerContent> with Ticke
             _nextIndex = index;
             _requestAnimationToNextIndex();
           });
+          viewPortOnScreen(context);
           _scrollTo(context);
+                  
           // If the target is not the original starting point, then we will accept the drop.
-          return _dragging == toAccept && toAccept != toWrap.key;
+          print("Dragging $_dragging toAccept $toAccept toWrapKey ${toWrap.key}");
+          print(" on WillAccept ${toAccept != toWrap.key}");
+          return  toAccept != toWrap.key;
         },
         onAccept: (Key accepted) { },
         onLeave: (Key leaving) { },
       );
-    });
+    }); 
   }
 
   @override

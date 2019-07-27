@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
 import 'package:trello_app/task_card_container.dart';
-import 'package:trello_app/data.dart';
 import 'package:trello_app/task_model.dart';
+import 'package:trello_app/constants.dart';
 
 class HomeScreen extends StatefulWidget {
   @override
@@ -9,10 +10,6 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-
-  final List<TaskModel> todoTasks = DATA_TODO.map<TaskModel>((data)=>TaskModel(id: data["id"], title: data["title"])).toList();
-  final List<TaskModel> inProgressTasks = DATA_IN_PROGRESS.map<TaskModel>((data)=>TaskModel(id: data["id"], title: data["title"])).toList();
-  final List<TaskModel> doneTasks = DATA_DONE.map<TaskModel>((data)=>TaskModel(id: data["id"], title: data["title"])).toList();
 
   void _onReorderToDo(int oldIndex, int newIndex) {
     setState(() {
@@ -56,49 +53,62 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget buildTaskCard(TaskModel task){
     return Container(
         margin: EdgeInsets.symmetric(vertical: 4.0, horizontal: 8.0),
-        color: Colors.yellow,
         height: 150.0,
         key: Key(task.id.toString()),
         child: Center(
           child: Text(task.title),
         ),
+        decoration: BoxDecoration(
+          color: Colors.white70,
+          borderRadius: BorderRadius.circular(16.0)
+        ),
       );
   }
 
   @override
-  Widget build(BuildContext context) {
+  void initState() {
+    super.initState();
+    taskCardContainerController = ScrollController();
+  }
+
+
+  Widget _buildCardContainer({String headerText, Color containerColor, CardReorderCallback onReorder, List<TaskModel> tasks}){
     double width = MediaQuery.of(context).size.width;
+    return Container(
+      margin: EdgeInsets.all(6.0),
+      child: SizedBox(
+        width: width*0.75,
+        child: TaskCardContainer(
+          header: Container(
+            padding: EdgeInsets.symmetric(vertical: 10.0),
+            child: Text(headerText , style: TextStyle(fontSize: 24.0, fontWeight: FontWeight.bold),),
+          ),
+          children: tasks.map<Widget>(buildTaskCard).toList(),
+          onReorder: onReorder
+        ),
+      ),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(8.0),
+        color: containerColor,
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return Scaffold(
       body: SafeArea(
         child: Container(
+          padding: EdgeInsets.all(4.0),
           child: ListView(
+            key: listViewKey,
             scrollDirection: Axis.horizontal,
+            controller: taskCardContainerController,
             children: <Widget>[
-                SizedBox(
-                  width: width*0.75,
-                  child: TaskCardContainer(
-                    header: Text("To Do"),
-                    children: todoTasks.map<Widget>(buildTaskCard).toList(),
-                    onReorder: _onReorderToDo
-                  ),
-                ),
-                SizedBox(
-                  width: width*0.75,
-                  child: TaskCardContainer(
-                    header: Text("In Progress"),
-                    children: inProgressTasks.map<Widget>(buildTaskCard).toList(),
-                    onReorder: _onReorderInProgress
-                  ),
-                ),
-                SizedBox(
-                  width: width*0.75,
-                  child: TaskCardContainer(
-                    header: Text("Done"),
-                    children: doneTasks.map<Widget>(buildTaskCard).toList(),
-                    onReorder: _onReorderDone
-                  ),
-                ),
-              ],
+              _buildCardContainer(containerColor: Colors.red.shade400, headerText: "To Do", onReorder: _onReorderToDo, tasks: todoTasks),
+              _buildCardContainer(containerColor: Colors.yellow.shade400, headerText: "In Progress", onReorder: _onReorderInProgress, tasks: inProgressTasks),
+              _buildCardContainer(containerColor: Colors.green.shade400, headerText: "Done", onReorder: _onReorderDone , tasks: doneTasks),
+            ],
           ),
          decoration: BoxDecoration(
            image: DecorationImage(image: NetworkImage("https://www.gstatic.com/webp/gallery/4.webp"), fit: BoxFit.cover)
@@ -106,5 +116,11 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
       )
     );
+  }
+
+  @override
+  void dispose() {
+    taskCardContainerController.dispose();
+    super.dispose();
   }
 }
