@@ -11,35 +11,7 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
 
-  void _onReorderToDo(int oldIndex, int newIndex) {
-    setState(() {
-      if (newIndex > oldIndex) {
-        newIndex -= 1;
-      }
-      final TaskModel item = todoTasks.removeAt(oldIndex);
-      todoTasks.insert(newIndex, item);
-    });
-  }
-
-  void _onReorderInProgress(int oldIndex, int newIndex) {
-    setState(() {
-      if (newIndex > oldIndex) {
-        newIndex -= 1;
-      }
-      final TaskModel item = inProgressTasks.removeAt(oldIndex);
-      inProgressTasks.insert(newIndex, item);
-    });
-  }
-  void _onReorderDone(int oldIndex, int newIndex) {
-    setState(() {
-      if (newIndex > oldIndex) {
-        newIndex -= 1;
-      }
-      final TaskModel item = doneTasks.removeAt(oldIndex);
-      doneTasks.insert(newIndex, item);
-    });
-  }
-
+  
   void _onReorder(int oldIndex, int newIndex, List<TaskModel> tasks){
     setState(() {
       if (newIndex > oldIndex) {
@@ -72,30 +44,37 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
 
-  Widget _buildCardContainer({String headerText, Color containerColor, CardReorderCallback onReorder, List<TaskModel> tasks}){
-    double width = MediaQuery.of(context).size.width;
-    return Container(
-      margin: EdgeInsets.all(6.0),
-      child: SizedBox(
-        width: width*0.75,
-        child: TaskCardContainer(
-          header: Container(
-            padding: EdgeInsets.symmetric(vertical: 10.0),
-            child: Text(headerText , style: TextStyle(fontSize: 24.0, fontWeight: FontWeight.bold),),
+  Widget _buildCardContainer({String headerText, Color containerColor, List<TaskModel> tasks, double width}){
+    return Column(
+      children: <Widget>[
+        Expanded(
+          child: Container(
+            margin: EdgeInsets.all(6.0),
+            child: SizedBox(
+              width: width*0.75,
+              child: TaskCardContainer(
+                header: Container(
+                  padding: EdgeInsets.symmetric(vertical: 10.0),
+                  child: Text(headerText , style: TextStyle(fontSize: 24.0, fontWeight: FontWeight.bold),),
+                ),
+                children: tasks.map<Widget>(buildTaskCard).toList(),
+                onReorder: _onReorder,
+                tasks: tasks,
+              ),
+            ),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(8.0),
+              color: containerColor,
+            ),
           ),
-          children: tasks.map<Widget>(buildTaskCard).toList(),
-          onReorder: onReorder
         ),
-      ),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(8.0),
-        color: containerColor,
-      ),
+      ],
     );
   }
 
   @override
   Widget build(BuildContext context) {
+    double width = MediaQuery.of(context).size.width;
     return Scaffold(
       body: SafeArea(
         child: Container(
@@ -105,9 +84,9 @@ class _HomeScreenState extends State<HomeScreen> {
             scrollDirection: Axis.horizontal,
             controller: taskCardContainerController,
             children: <Widget>[
-              _buildCardContainer(containerColor: Colors.red.shade400, headerText: "To Do", onReorder: _onReorderToDo, tasks: todoTasks),
-              _buildCardContainer(containerColor: Colors.yellow.shade400, headerText: "In Progress", onReorder: _onReorderInProgress, tasks: inProgressTasks),
-              _buildCardContainer(containerColor: Colors.green.shade400, headerText: "Done", onReorder: _onReorderDone , tasks: doneTasks),
+              _buildCardContainer(containerColor: Colors.red.shade400, headerText: "To Do", tasks: todoTasks, width: width),
+              _buildCardContainer(containerColor: Colors.yellow.shade400, headerText: "In Progress", width: width, tasks: inProgressTasks),
+              _buildCardContainer(containerColor: Colors.green.shade400, headerText: "Done" , tasks: doneTasks, width: width),
             ],
           ),
          decoration: BoxDecoration(

@@ -7,8 +7,9 @@ import 'package:flutter/src/material/debug.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/src/material/material_localizations.dart';
 import 'package:trello_app/constants.dart';
+import 'package:trello_app/task_model.dart';
 
-typedef CardReorderCallback = void Function(int oldIndex, int newIndex);
+typedef CardReorderCallback = void Function(int oldIndex, int newIndex, List<TaskModel> tasks);
 
 class TaskCardContainer extends StatefulWidget {
 
@@ -19,6 +20,7 @@ class TaskCardContainer extends StatefulWidget {
     @required this.children,
     @required this.onReorder,
     this.padding,
+    @required this.tasks,
     Key key
   }) : assert(onReorder != null),
        assert(children != null),
@@ -27,6 +29,8 @@ class TaskCardContainer extends StatefulWidget {
          'All children of this widget must have a key.',
        ),
        super(key:key);
+
+  final List<TaskModel> tasks;
 
   final int id;
 
@@ -74,6 +78,7 @@ class _TaskCardContainerState extends State<TaskCardContainer> {
           children: widget.children,
           onReorder: widget.onReorder,
           padding: widget.padding,
+          tasks: widget.tasks,
       );
   }
 }
@@ -86,12 +91,14 @@ class _TaskContainerContent extends StatefulWidget {
     @required this.children,
     @required this.padding,
     @required this.onReorder,
+    @required this.tasks
   });
 
   final Widget header;
   final List<Widget> children;
   final EdgeInsets padding;
   final CardReorderCallback onReorder;
+  final List<TaskModel> tasks;
   
   @override
   _TaskContainerContentState createState() => _TaskContainerContentState();
@@ -305,7 +312,7 @@ class _TaskContainerContentState extends State<_TaskContainerContent> with Ticke
     void reorder(int startIndex, int endIndex) {
       setState(() {
         if (startIndex != endIndex)
-          widget.onReorder(startIndex, endIndex);
+          widget.onReorder(startIndex, endIndex, widget.tasks);
         // Animates leftover space in the drop area closed.
         // TODO(djshuckerow): bring the animation in line with the Material
         // specifications.
