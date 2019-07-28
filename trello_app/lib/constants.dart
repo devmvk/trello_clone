@@ -10,3 +10,5 @@ final List<TaskModel> doneTasks = DATA_DONE.map<TaskModel>((data)=>TaskModel(id:
 GlobalKey listViewKey = GlobalKey(debugLabel: "TaskCardContainersKey");
 ScrollController taskCardContainerController = ScrollController();
 BuildContext taskContainerContext; 
+AnimationController entranceController;
+AnimationController ghostController;

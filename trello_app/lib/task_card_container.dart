@@ -116,9 +116,7 @@ class _TaskContainerContentState extends State<_TaskContainerContent> with Ticke
   // The additional margin to place around a computed drop area.
   static const double _dropAreaMargin = 8.0;
 
-  // How long an animation to reorder an element in the list takes.
-  static const Duration _reorderAnimationDuration = Duration(milliseconds: 200);
-
+  
   // How long an animation to scroll to an off-screen element in the
   // list takes.
   static const Duration _scrollAnimationDuration = Duration(milliseconds: 200);
@@ -126,12 +124,6 @@ class _TaskContainerContentState extends State<_TaskContainerContent> with Ticke
   // Controls scrolls and measures scroll progress.
   ScrollController _scrollController;
 
-  // This controls the entrance of the dragging widget into a new place.
-  AnimationController _entranceController;
-
-  // This controls the 'ghost' of the dragging widget, which is left behind
-  // where the widget used to be.
-  AnimationController _ghostController;
 
   // The member of widget.children currently being dragged.
   //
@@ -167,11 +159,17 @@ class _TaskContainerContentState extends State<_TaskContainerContent> with Ticke
   @override
   void initState() {
     super.initState();
-    _entranceController = AnimationController(vsync: this, duration: _reorderAnimationDuration);
-    _ghostController = AnimationController(vsync: this, duration: _reorderAnimationDuration);
-    _entranceController.addStatusListener(_onEntranceStatusChanged);
+    entranceController.addStatusListener(_onEntranceStatusChanged);
     _scrollController = ScrollController();
     //taskCardContainerController.addListener();
+  }
+
+  void _onEntranceStatusChanged(AnimationStatus status) {
+    if (status == AnimationStatus.completed) {
+      setState(() {
+        _requestAnimationToNextIndex();
+      });
+    }
   }
 
   @override
@@ -181,34 +179,26 @@ class _TaskContainerContentState extends State<_TaskContainerContent> with Ticke
 
   @override
   void dispose() {
-    _entranceController.dispose();
-    _ghostController.dispose();
     super.dispose();
   }
 
   // Animates the droppable space from _currentIndex to _nextIndex.
   void _requestAnimationToNextIndex() {
-
-    if (_entranceController.isCompleted) {
+    print("function call ${entranceController.isCompleted}");
+    if (entranceController.isCompleted) {
       print("request");
       _ghostIndex = _currentIndex;
       if (_nextIndex == _currentIndex) {
         return;
       }
       _currentIndex = _nextIndex;
-      _ghostController.reverse(from: 1.0);
-      _entranceController.forward(from: 0.0);
+      ghostController.reverse(from: 1.0);
+      entranceController.forward(from: 0.0);
     }
   }
 
   // Requests animation to the latest next index if it changes during an animation.
-  void _onEntranceStatusChanged(AnimationStatus status) {
-    if (status == AnimationStatus.completed) {
-      setState(() {
-        _requestAnimationToNextIndex();
-      });
-    }
-  }
+  
 
   void viewTaskContainerOnScreen(BuildContext context){
     final RenderObject contextObject = context.findRenderObject();
@@ -307,7 +297,7 @@ class _TaskContainerContentState extends State<_TaskContainerContent> with Ticke
         _dragStartIndex = index;
         _ghostIndex = index;
         _currentIndex = index;
-        _entranceController.value = 1.0;
+        entranceController.value = 1.0;
         _draggingFeedbackSize = keyIndexGlobalKey.currentContext.size;
       });
     }
@@ -320,8 +310,8 @@ class _TaskContainerContentState extends State<_TaskContainerContent> with Ticke
         // Animates leftover space in the drop area closed.
         // TODO(djshuckerow): bring the animation in line with the Material
         // specifications.
-        _ghostController.reverse(from: 0.1);
-        _entranceController.reverse(from: 0.1);
+        ghostController.reverse(from: 0.1);
+        entranceController.reverse(from: 0.1);
         _dragging = null;
       });
     }
@@ -428,7 +418,7 @@ class _TaskContainerContentState extends State<_TaskContainerContent> with Ticke
       if (_currentIndex == index) {
         return _buildContainerForScrollDirection(children: <Widget>[
           SizeTransition(
-            sizeFactor: _entranceController,
+            sizeFactor: entranceController,
             axis: Axis.vertical,
             child: spacing,
           ),
@@ -440,7 +430,7 @@ class _TaskContainerContentState extends State<_TaskContainerContent> with Ticke
       if (_ghostIndex == index) {
         return _buildContainerForScrollDirection(children: <Widget>[
           SizeTransition(
-            sizeFactor: _ghostController,
+            sizeFactor: ghostController,
             axis: Axis.vertical,
             child: spacing,
           ),

@@ -9,8 +9,10 @@ class HomeScreen extends StatefulWidget {
   _HomeScreenState createState() => _HomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen> {
+class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin<HomeScreen>{
 
+  // How long an animation to reorder an element in the list takes.
+  static const Duration _reorderAnimationDuration = Duration(milliseconds: 200);
   
   void _onReorder(int oldIndex, int newIndex, List<TaskModel> tasks){
     setState(() {
@@ -40,6 +42,8 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
+    entranceController = AnimationController(vsync: this, duration: _reorderAnimationDuration);
+    ghostController = AnimationController(vsync: this, duration: _reorderAnimationDuration);
     taskCardContainerController = ScrollController();
   }
 
@@ -99,7 +103,8 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   void dispose() {
-    taskCardContainerController.dispose();
+    entranceController.dispose();
+    ghostController.dispose();
     super.dispose();
   }
 }
