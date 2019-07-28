@@ -184,9 +184,7 @@ class _TaskContainerContentState extends State<_TaskContainerContent> with Ticke
 
   // Animates the droppable space from _currentIndex to _nextIndex.
   void _requestAnimationToNextIndex() {
-    print("function call ${entranceController.isCompleted}");
     if (entranceController.isCompleted) {
-      print("request");
       _ghostIndex = _currentIndex;
       if (_nextIndex == _currentIndex) {
         return;
