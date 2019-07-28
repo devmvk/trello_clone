@@ -171,7 +171,7 @@ class _TaskContainerContentState extends State<_TaskContainerContent> with Ticke
     _ghostController = AnimationController(vsync: this, duration: _reorderAnimationDuration);
     _entranceController.addStatusListener(_onEntranceStatusChanged);
     _scrollController = ScrollController();
-    
+    //taskCardContainerController.addListener();
   }
 
   @override
@@ -188,7 +188,9 @@ class _TaskContainerContentState extends State<_TaskContainerContent> with Ticke
 
   // Animates the droppable space from _currentIndex to _nextIndex.
   void _requestAnimationToNextIndex() {
+
     if (_entranceController.isCompleted) {
+      print("request");
       _ghostIndex = _currentIndex;
       if (_nextIndex == _currentIndex) {
         return;
@@ -208,18 +210,45 @@ class _TaskContainerContentState extends State<_TaskContainerContent> with Ticke
     }
   }
 
-  void viewPortOnScreen(BuildContext contex){
+  void viewTaskContainerOnScreen(BuildContext context){
     final RenderObject contextObject = context.findRenderObject();
     final RenderAbstractViewport viewport = RenderAbstractViewport.of(contextObject);
     viewport.showOnScreen(
-      descendant: context.findRenderObject(),
-      duration: Duration(seconds: 2),
-      curve: Curves.easeInOut
+      curve: Curves.easeInOut,
+      descendant: contextObject,
+      duration: Duration(milliseconds: 500)
     );
+
+    // final double horizontalScrollOffSet = taskCardContainerController.offset;
+    
+    // final double leftOffset = max(
+    //   taskCardContainerController.position.maxScrollExtent,
+    //   viewport.getOffsetToReveal(contextObject, 0.0).offset - 8.0,
+    // );
+    // final double rightOffset = min(
+    //   taskCardContainerController.position.maxScrollExtent,
+    //   viewport.getOffsetToReveal(contextObject, 1.0).offset + 8.0,
+    // );
+
+    // final bool horizontalOnScreen = horizontalScrollOffSet <= leftOffset && horizontalScrollOffSet >= rightOffset;
+    // if(!horizontalOnScreen){
+    //   _scrolling = true;
+    //   taskCardContainerController.position.animateTo(
+    //     horizontalScrollOffSet < rightOffset ? rightOffset : leftOffset,
+    //     duration: Duration(milliseconds: 700),
+    //     curve: Curves.easeInOut,
+    //   ).then((void value) {
+    //     setState(() {
+    //       _scrolling = false;
+    //     });
+    //   });
+    // }
+  
   }
 
   // Scrolls to a target context if that context is not on the screen.
   void _scrollTo(BuildContext context) {
+    viewTaskContainerOnScreen(taskContainerContext);
     if (_scrolling)
       return;
     final RenderObject contextObject = context.findRenderObject();
@@ -230,7 +259,6 @@ class _TaskContainerContentState extends State<_TaskContainerContent> with Ticke
     // screen, then it is already on-screen.
     final double margin = _dropAreaExtent;
     final double scrollOffset = _scrollController.offset;
-    final double horizontalScrollOffSet = taskCardContainerController.offset;
     final double topOffset = max(
       _scrollController.position.minScrollExtent,
       viewport.getOffsetToReveal(contextObject, 0.0).offset - margin,
@@ -239,21 +267,9 @@ class _TaskContainerContentState extends State<_TaskContainerContent> with Ticke
       _scrollController.position.maxScrollExtent,
       viewport.getOffsetToReveal(contextObject, 1.0).offset + margin,
     );
-    final double leftOffset = max(
-      taskCardContainerController.position.maxScrollExtent,
-      viewport.getOffsetToReveal(contextObject, 0.0).offset - margin,
-    );
-    final double rightOffset = min(
-      taskCardContainerController.position.maxScrollExtent,
-      viewport.getOffsetToReveal(contextObject, 1.0).offset + margin,
-    );
-
-    print("scrollOffSet $scrollOffset topOffset $topOffset bottomOffset $bottomOffset");
-    print("horizontalScrollOffSet $horizontalScrollOffSet leftOffset $leftOffset rightOffset $rightOffset");
     
     final bool verticalOnScreen = scrollOffset <= topOffset && scrollOffset >= bottomOffset;
-    final bool horizontalOnScreen = horizontalScrollOffSet <= leftOffset && horizontalScrollOffSet >= rightOffset;
-  
+    
     // If the context is off screen, then we request a scroll to make it visible.
     if (!verticalOnScreen) {
       _scrolling = true;
@@ -266,19 +282,7 @@ class _TaskContainerContentState extends State<_TaskContainerContent> with Ticke
           _scrolling = false;
         });
       });
-    }
-    // else if(!horizontalOnScreen){
-    //   _scrolling = true;
-    //   taskCardContainerController.position.animateTo(
-    //     horizontalScrollOffSet < rightOffset ? rightOffset : leftOffset,
-    //     duration: _scrollAnimationDuration,
-    //     curve: Curves.easeInOut,
-    //   ).then((void value) {
-    //     setState(() {
-    //       _scrolling = false;
-    //     });
-    //   });
-    // }
+    } 
   }
 
   // Wraps children in Row or Column, so that the children flow in
@@ -455,13 +459,9 @@ class _TaskContainerContentState extends State<_TaskContainerContent> with Ticke
             _nextIndex = index;
             _requestAnimationToNextIndex();
           });
-          viewPortOnScreen(context);
           _scrollTo(context);
-                  
           // If the target is not the original starting point, then we will accept the drop.
-          print("Dragging $_dragging toAccept $toAccept toWrapKey ${toWrap.key}");
-          print(" on WillAccept ${toAccept != toWrap.key}");
-          return  toAccept != toWrap.key;
+          return _dragging == toAccept && toAccept != toWrap.key;
         },
         onAccept: (Key accepted) { },
         onLeave: (Key leaving) { },
@@ -471,6 +471,7 @@ class _TaskContainerContentState extends State<_TaskContainerContent> with Ticke
 
   @override
   Widget build(BuildContext context) {
+    taskContainerContext = context;
     assert(debugCheckHasMaterialLocalizations(context));
     // We use the layout builder to constrain the cross-axis size of dragging child widgets.
     return LayoutBuilder(builder: (BuildContext context, BoxConstraints constraints) {
